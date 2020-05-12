@@ -2,38 +2,33 @@ import json
 from exercice2 import add_user, get_users, connect_db, add_users, search_user, get_one_user
 
 
-def add_user_test():
-    user = {
-        'id': 4,
-        'first_name': 'Hamza',
-        'last_name': 'MENSI',
-        'phone_number': '+33621432483'
-    }
+def test_add_user_test():
+    user = [4, 'HAMZA', 'MENSI', '+33621432483']
     add_user(user)
     conn, cursor = connect_db()
     cursor.execute('SELECT * from utilisateur where id = 4')
-    user = cursor.fetchone()
-    assert user[0] == user.get('id')
-    assert user[1] == user.get('first_name')
-    assert user[2] == user.get('last_name')
-    assert user[3] == user.get('phone_number')
+    user_sql = cursor.fetchone()
+    assert user_sql[0] == user[0]
+    assert user_sql[1] == user[1]
+    assert user_sql[2] == user[2]
+    assert user_sql[3] == user[3]
 
-def get_users_test():
+def test_get_users():
     get_users()
     with open('users.json', 'r+') as f:
         users = json.loads(f.read())
         conn, cursor = connect_db()
         cursor.execute('SELECT * from utilisateur')
-        users = cursor.fetchall()
-        user_json = [{'id': user_sql[0], 'first_name': user_sql[1], 'last_name': user_sql[2], 'phone_number': user_sql[3]} for user_sql in users]
+        users_sql = cursor.fetchall()
+        user_json = [{'id': user_sql[0], 'first_name': user_sql[1], 'last_name': user_sql[2], 'phone_number': user_sql[3]} for user_sql in users_sql]
         assert user_json == users
 
-def get_one_user_test():
-    get_one_user()
+def test_get_one_user():
+    user = get_one_user()
     with open('id.json', 'r+') as f:
-        user = json.loads(f.read()).get('id')
+        id = json.loads(f.read()).get('id')
         conn, cursor = connect_db()
-        cursor.execute('SELECT * from utilisateur where id = %s' % (user))
+        cursor.execute('SELECT * from utilisateur where id = %s' % (id))
         user_sql = cursor.fetchone()
         user_json = {
             'id': user_sql[0],
@@ -41,11 +36,17 @@ def get_one_user_test():
             'last_name': user_sql[2],
             'phone_number': user_sql[3]
         }
+        user = {
+            'id': user[0],
+            'first_name': user[1],
+            'last_name': user[2],
+            'phone_number': user[3]
+        }
         assert user == user_json
 
 
-def add_users_test():
-    add_users()
+def test_add_users():
+    add_users('users_to_add.json')
     with open('users.json', 'r+') as f:
         users = json.loads(f.read())
         conn, cursor = connect_db()
@@ -55,9 +56,10 @@ def add_users_test():
         for user in users:
             assert user in user_json
 
-def search_user_test():
+
+def test_search_user():
     search_user(['first_name', 'XX'])
-    with open('users.json', 'r+') as f:
+    with open('users_search.json', 'r+') as f:
         users = json.loads(f.read())
         conn, cursor = connect_db()
         cursor.execute("SELECT * from utilisateur where first_name = 'XX'")
